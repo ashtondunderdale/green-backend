@@ -5,6 +5,8 @@ namespace green_backend.Models;
 [BsonIgnoreExtraElements]
 public class Question
 {
+    public Guid ObjectID { get; set; }
+
     public string Prompt { get; set; }
 
     public string Answer { get; set; }
