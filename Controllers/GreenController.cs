@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
+using MongoDB.Driver;
 
 namespace green_backend.Controllers
 {
@@ -9,18 +8,22 @@ namespace green_backend.Controllers
     public class GreenController : ControllerBase
     {
         private readonly ILogger<GreenController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public GreenController(ILogger<GreenController> logger)
+        public GreenController(ILogger<GreenController> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration; 
         }
-
-
 
         [HttpGet("GetQuestions")]
         public IActionResult GetQuestionData()
         {
-            _logger.LogInformation("got questions");
+            string connectionString = _configuration.GetValue<string>("ConnectionString");
+
+            MongoClient client = new(connectionString);
+            var dbs = client.ListDatabaseNames().ToList();
+                
             return Ok("got questions from mongodb");
         }
     }
