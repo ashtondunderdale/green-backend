@@ -14,5 +14,14 @@ namespace green_backend.Controllers
         {
             _logger = logger;
         }
+
+
+
+        [HttpGet("GetQuestions")]
+        public IActionResult GetQuestionData()
+        {
+            _logger.LogInformation("got questions");
+            return Ok("got questions from mongodb");
+        }
     }
 }
