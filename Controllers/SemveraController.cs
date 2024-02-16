@@ -1,8 +1,10 @@
 using green_backend.Models;
 using green_backend.Requests;
 using green_backend.Responses;
+
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using BCrypt.Net;
 
 namespace green_backend.Controllers;
 
@@ -63,7 +65,9 @@ public class SemveraController : ControllerBase
 
             if (request.Email is not null && request.Password is not null && request.Username is not null) 
             {
-                SemveraUser user = new(request.Email, request.Password, request.Username);
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                SemveraUser user = new(request.Email, hashedPassword, request.Username);
                 collection.InsertOne(user);
 
                 response.Success = true;
@@ -90,9 +94,9 @@ public class SemveraController : ControllerBase
             var filter = Builders<SemveraUser>.Filter.Empty;
             var documents = collection.Find(filter).ToList();
 
-            var user = documents.FirstOrDefault(u => u.Username == request.Username && u.Password == request.Password);
+            var user = documents.FirstOrDefault(u => u.Username == request.Username);
 
-            if (user is not null)
+            if (user is not null && BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 response.Success = true;
                 return Ok(response);
