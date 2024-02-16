@@ -1,6 +1,10 @@
 ﻿namespace green_backend.Requests;
 
-public class EmailRequest
+public class PreLaunchUserRequest
 {
-    public string? Email { get; set; }   
+    public string? EmailAddress { get; set; }
+
+    public string? Name { get; set; }
+
+    public string? TimeStamp { get; set; }
 }

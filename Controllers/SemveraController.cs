@@ -7,11 +7,11 @@ namespace green_backend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class GreenController : ControllerBase
+public class SemveraController : ControllerBase
 {
     private readonly IMongoClient _mongoClient;
 
-    public GreenController(IMongoClient mongoClient)
+    public SemveraController(IMongoClient mongoClient)
     {
         _mongoClient = mongoClient; 
     }
@@ -43,15 +43,14 @@ public class GreenController : ControllerBase
     }
 
     [HttpPost("AddPreLaunchEmail")]
-    [ProducesResponseType(200, Type = typeof(List<Question>))]
-    public IActionResult AddPreLaunchEmail(EmailRequest request) 
+    public IActionResult AddPreLaunchEmail(PreLaunchUserRequest request) 
     {
         try 
         {
             var db = _mongoClient.GetDatabase("29209dd4-b715-4ec8-b5ae-c0020d967191");
-            var collection = db.GetCollection<Email>("PreLaunchEmails");
+            var collection = db.GetCollection<PreLaunchUser>("PreLaunchEmails");
 
-            var document = new Email(request.Email!);
+            var document = new PreLaunchUser(request.EmailAddress!, request.Name!, request.TimeStamp!);
             collection.InsertOne(document);
 
             return Ok();
@@ -61,4 +60,45 @@ public class GreenController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpPost("TryLogin")]
+    public IActionResult TryLogin(LoginRequest request) 
+    {
+        try
+        {
+            var db = _mongoClient.GetDatabase("29209dd4-b715-4ec8-b5ae-c0020d967191");
+            var collection = db.GetCollection<SemveraUser>("Users");
+
+            var filter = Builders<SemveraUser>.Filter.Empty;
+            var documents = collection.Find(filter).ToList();
+
+            foreach (var user in documents) 
+            {
+                Console.WriteLine(user.Username);
+            }
+
+            return Ok();
+        }
+        catch (Exception e) 
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }
+
+
+// template
+/*[HttpPost("APINAME")]
+public IActionResult APINAME()
+{
+    try
+    {
+
+
+        return Ok();
+    }
+    catch (Exception e)
+    {
+        return BadRequest(e.Message);
+    }
+}*/
