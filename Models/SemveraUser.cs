@@ -22,13 +22,24 @@ public class SemveraUser
     //public List<string> Followers { get; set; }
 
     //public List<string> Following { get; set; }
-    public string TreesPlanted { get; set; }
+    public int TreesPlanted { get; set; }
 
-    public string ProblemsSolved { get; set; }
+    public int ProblemsSolved { get; set; }
 
     public string JoinedAt { get; set; }
 
     //public bool IsActive { get; set; }
 
     //public string IsPremium { get; set; }
+
+    public SemveraUser(string email, string password, string username) 
+    { 
+        Email = email;
+        Password = password;
+        Username = username;
+        Description = "";
+        TreesPlanted = 0;
+        ProblemsSolved = 0;
+        JoinedAt = DateTime.Now.ToString();
+    }
 }

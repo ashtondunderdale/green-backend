@@ -17,32 +17,6 @@ public class SemveraController : ControllerBase
         _mongoClient = mongoClient; 
     }
 
-    [HttpGet("GetQuestions")]
-    [ProducesResponseType(200, Type = typeof(List<Question>))]
-    public IActionResult GetQuestions()
-    {
-        try 
-        {
-            var db = _mongoClient.GetDatabase("15750c77-1a68-49c4-b02e-70fa43eab052");
-            var collection = db.GetCollection<Question>("Questions");
-
-            var filter = Builders<Question>.Filter.Empty;
-            var documents = collection.Find(filter).ToList();
-
-            List<Question> questions = documents.Select(document => new Question(
-                document.Prompt, document.Answer, document.Language, document.Difficulty, document.Author,
-                document.Votes, document.Views, document.Rating, document.QuestionNumber
-            )).ToList();
-
-            return Ok(questions);
-        }
-        catch (Exception e) 
-        {
-            return BadRequest(e.Message);
-        }
-
-    }
-
     [HttpPost("AddPreLaunchEmail")]
     public IActionResult AddPreLaunchEmail(PreLaunchUserRequest request) 
     {
@@ -55,6 +29,47 @@ public class SemveraController : ControllerBase
             collection.InsertOne(document);
 
             return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("TryRegister")]
+    public IActionResult TryRegister(RegisterRequest request) 
+    {
+        try
+        {
+            APIResponse response = new();
+
+            var db = _mongoClient.GetDatabase("29209dd4-b715-4ec8-b5ae-c0020d967191");
+            var collection = db.GetCollection<SemveraUser>("Users");
+
+            var filter = Builders<SemveraUser>.Filter.Empty;
+            var documents = collection.Find(filter).ToList();
+
+            var existingUser = documents.FirstOrDefault(u => u.Email == request.Email || u.Username == request.Username);
+
+            if (existingUser is not null)
+            {
+                if (existingUser.Email == request.Email) response.Message = "User with that email already exists";
+                else response.Message = "User with that username already exists";
+
+                response.Success = false;
+
+                return Ok(response);
+            }
+
+            if (request.Email is not null && request.Password is not null && request.Username is not null) 
+            {
+                SemveraUser user = new(request.Email, request.Password, request.Username);
+                collection.InsertOne(user);
+
+                response.Success = true;
+            }
+
+            return Ok(response);
         }
         catch (Exception e)
         {
@@ -75,16 +90,15 @@ public class SemveraController : ControllerBase
             var filter = Builders<SemveraUser>.Filter.Empty;
             var documents = collection.Find(filter).ToList();
 
-            foreach (var user in documents) 
+            var user = documents.FirstOrDefault(u => u.Username == request.Username && u.Password == request.Password);
+
+            if (user is not null)
             {
-                if (user.Username == request.Username && user.Password == request.Password) 
-                {
-                    response.Success = true;
-                    return Ok(response);
-                }
+                response.Success = true;
+                return Ok(response);
             }
 
-            response.Message = "User not found";
+            response.Message = "User not found or incorrect login details";
             response.Success = false;
 
             return Ok(response);
@@ -94,6 +108,31 @@ public class SemveraController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+/*    [HttpGet("GetQuestions")]
+    [ProducesResponseType(200, Type = typeof(List<Question>))]
+    public IActionResult GetQuestions()
+    {
+        try
+        {
+            var db = _mongoClient.GetDatabase("15750c77-1a68-49c4-b02e-70fa43eab052");
+            var collection = db.GetCollection<Question>("Questions");
+
+            var filter = Builders<Question>.Filter.Empty;
+            var documents = collection.Find(filter).ToList();
+
+            List<Question> questions = documents.Select(document => new Question(
+                document.Prompt, document.Answer, document.Language, document.Difficulty, document.Author,
+                document.Votes, document.Views, document.Rating, document.QuestionNumber
+            )).ToList();
+
+            return Ok(questions);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }*/
 }
 
 
