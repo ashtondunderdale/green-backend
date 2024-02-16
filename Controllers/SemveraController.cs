@@ -1,5 +1,6 @@
 using green_backend.Models;
 using green_backend.Requests;
+using green_backend.Responses;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -66,6 +67,8 @@ public class SemveraController : ControllerBase
     {
         try
         {
+            APIResponse response = new();
+            
             var db = _mongoClient.GetDatabase("29209dd4-b715-4ec8-b5ae-c0020d967191");
             var collection = db.GetCollection<SemveraUser>("Users");
 
@@ -74,10 +77,17 @@ public class SemveraController : ControllerBase
 
             foreach (var user in documents) 
             {
-                Console.WriteLine(user.Username);
+                if (user.Username == request.Username && user.Password == request.Password) 
+                {
+                    response.Success = true;
+                    return Ok(response);
+                }
             }
 
-            return Ok();
+            response.Message = "User not found";
+            response.Success = false;
+
+            return Ok(response);
         }
         catch (Exception e) 
         {
