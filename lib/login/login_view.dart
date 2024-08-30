@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:twofile/home/home_view.dart';
 import 'package:twofile/services/onefile.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -15,11 +18,28 @@ class _LoginViewState extends State<LoginView> {
   final passwordController = TextEditingController();
 
   bool showPassword = false;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
   }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+    String? password = prefs.getString('password');
+
+
+    if (email != null && password != null) {
+      emailController.text = email;
+      passwordController.text = password;
+
+      onLogin();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +129,7 @@ class _LoginViewState extends State<LoginView> {
             color: Colors.grey,
             fontFamily: "Inter",
             fontWeight: FontWeight.w100,
-            fontSize: 14,
-            fontStyle: FontStyle.italic
+            fontSize: 15,
           ),
         ),
       ],
@@ -125,21 +144,32 @@ class _LoginViewState extends State<LoginView> {
         child: GestureDetector(
           onTap: onLogin,
           child: Container(
+            width: 120,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(color: Colors.grey),
             ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Text(
-                "Login",
-                style: TextStyle(
-                  fontFamily: "Inter",
-                  fontSize: 14,
-                  fontWeight: FontWeight.w100,
-                  color: Colors.black,
-                ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Center(
+                child: !isLoading
+                    ? const Text(
+                        "Login",
+                        style: TextStyle(
+                          fontFamily: "Inter",
+                          fontSize: 14,
+                          fontWeight: FontWeight.w100,
+                          color: Colors.black,
+                        ),
+                      )
+                    : const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      child: SpinKitThreeBounce(
+                          color: Colors.grey,
+                          size: 12,
+                        ),
+                    ),
               ),
             ),
           ),
@@ -212,12 +242,25 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  Future onLogin() async {
+  Future<void> onLogin() async {
+    setState(() {
+      isLoading = true;
+    });
+
     var isValid = await _onefile.login(emailController.text, passwordController.text);
-    print(isValid);
+
+    setState(() {
+      isLoading = false;
+    });
 
     if (isValid) {
-    } else {
-    }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email', emailController.text);
+      await prefs.setString('password', passwordController.text);
+
+      Navigator.pushReplacement(context, 
+        MaterialPageRoute(builder: (context) => const HomeView()),
+      );
+    } 
   }
 }
