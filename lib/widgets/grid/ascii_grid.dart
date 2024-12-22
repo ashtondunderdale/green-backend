@@ -1,8 +1,9 @@
+import 'package:engine/core/cursor_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../constants/constants.dart';
+import '../../utils/globals.dart';
 import '../../core/engine.dart';
 
 class GameScreen extends StatefulWidget {
@@ -13,10 +14,10 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  final int cols = 24; // Default columns
-  final int rows = 14; // Default rows
+  final int cols = 24;
+  final int rows = 14;
 
-  double cellSize = 42; // Default cell size
+  double cellSize = 42;
   final Map<String, bool> hoverState = {};
   final _focusNode = FocusNode();
 
@@ -59,9 +60,8 @@ class _GameScreenState extends State<GameScreen> {
       child: Container(
         width: screenWidth,
         height: screenHeight,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.black,
-          border: Border.all(color: Colors.white, width: borderWidth),
         ),
         child: _buildGrid(engine, dynamicCols, dynamicRows),
       ),
@@ -100,7 +100,22 @@ class _GameScreenState extends State<GameScreen> {
       child: GestureDetector(
         onTap: () {
           if (engine.isGameMode) return;
-          engine.addSceneObject(row, col);
+          if (engine.selectedObject == null) return;
+          if (engine.activeScene == null) return;
+
+          final cellAtXY = engine.activeScene!.cells
+            .where((x) => x.xPos == row && x.yPos == col).firstOrNull;
+
+          if (engine.cursorMode == CursorMode.object) {
+            if (cellAtXY != null) return;
+
+            engine.addSceneObject(row, col);
+          } 
+          else if (engine.cursorMode == CursorMode.select) {
+            if (cellAtXY == null) return;
+            engine.setSelectedObject(cellAtXY);
+          }
+
         },
         child: Container(
           width: cellSize,
@@ -123,13 +138,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildCellValue(AsciiEngine engine, int row, int col) {
+    double cellSizeFactor = 1.6;
+
     if (engine.activeScene == null) {
       return Center(
         child: Text(
           "",
           style: TextStyle(
             color: Colors.white,
-            fontSize: cellSize / 1.6,
+            fontSize: cellSize / cellSizeFactor,
           ),
         ),
       );
@@ -144,7 +161,7 @@ class _GameScreenState extends State<GameScreen> {
             "",
         style: TextStyle(
           color: Colors.white,
-          fontSize: cellSize / 1.6,
+          fontSize: cellSize / cellSizeFactor,
         ),
       ),
     );

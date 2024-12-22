@@ -1,4 +1,5 @@
 import 'package:engine/core/engine.dart';
+import 'package:engine/utils/globals.dart';
 import 'package:engine/widgets/console/engine_console.dart';
 import 'package:engine/widgets/grid/ascii_grid.dart';
 import 'package:engine/widgets/explorer/object_explorer.dart';
@@ -20,25 +21,28 @@ class _EngineViewState extends State<EngineView> {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 34, 34, 34),
-      body: Row(
-        children: [
-          if (!engine.isGameMode)
-            const ObjectExplorerPanel(),
-
-          Expanded(
-            child: Column(
-              children: [
-                const GameScreen(),
-                const Spacer(),
-                
-              if (!engine.isGameMode) const EngineConsole(),
-              ],
+      body: MouseRegion(
+        cursor: activeCursor,
+        child: Row(
+          children: [
+            if (!engine.isGameMode)
+              const ObjectExplorerPanel(),
+        
+            Expanded(
+              child: Column(
+                children: [
+                  const GameScreen(),
+                  const Spacer(),
+                  
+                  if (!engine.isGameMode) const EngineConsole(),
+                ],
+              ),
             ),
-          ),
-
-          if (!engine.isGameMode) 
-            ObjectInspectorPanel(selectedObject: engine.selectedObject),
-        ],
+        
+            if (!engine.isGameMode) 
+              const ObjectInspectorPanel(),
+          ],
+        ),
       ),
     );
   }

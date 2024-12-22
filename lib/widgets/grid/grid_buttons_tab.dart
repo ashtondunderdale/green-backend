@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../constants/constants.dart';
+import '../../utils/globals.dart';
 import '../../core/engine.dart';
 import '../common/engine_button.dart';
 
@@ -20,7 +20,7 @@ class _GridButtonsTabState extends State<GridButtonsTab> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Container(
-        height: gridButtonsTabHeight,
+        height: 50,
         width: 200,
         decoration: BoxDecoration(
           color: Colors.black,

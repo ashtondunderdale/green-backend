@@ -1,4 +1,4 @@
-import 'package:engine/constants/constants.dart';
+import 'package:engine/utils/globals.dart';
 import 'package:engine/core/engine.dart';
 import 'package:engine/widgets/common/engine_text_field.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +20,18 @@ class _EngineConsoleState extends State<EngineConsole> {
 
     return Container(
       width: double.infinity, height: consoleHeight,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border.all(
-          color: Colors.white, 
-          width: borderWidth
+      decoration: const BoxDecoration(
+        color: panelColour,
+        border: Border(
+          top: BorderSide(
+            color: Colors.white, 
+            width: borderWidth
+          )
         )
       ),
       child: EngineTextField(
+        hasBorder: false,
+        width: double.infinity,
         onSubmitted: () {
           final text = commandController.text;
 

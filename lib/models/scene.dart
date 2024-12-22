@@ -1,10 +1,10 @@
 import 'package:engine/models/cell_entity.dart';
+import 'game_object.dart';
 
-final class GameScene {
-  final String name;
+final class GameScene extends GameObject {
   final List<CellEntity> cells = [];
 
   GameScene({
-    required this.name
+    required super.name,
   });
 }

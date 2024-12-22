@@ -1,12 +1,11 @@
 import 'dart:math';
 
-import 'package:engine/constants/constants.dart';
+import 'package:engine/utils/globals.dart';
 import 'package:engine/core/engine.dart';
-import 'package:engine/models/game_object.dart';
+import 'package:engine/models/cell_template.dart';
 import 'package:engine/widgets/common/engine_button.dart';
 import 'package:engine/widgets/common/engine_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class GameObjectsList extends StatefulWidget {
@@ -25,12 +24,12 @@ class _GameObjectsListState extends State<GameObjectsList> {
     final engine = context.watch<AsciiEngine>();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8, left: 8),
       child: Container(
         width: 260,
         height: 140,
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: panelColour,
           border: Border.all(
             color: Colors.white,
             width: borderWidth,
@@ -52,8 +51,8 @@ class _GameObjectsListState extends State<GameObjectsList> {
                 spacing: 8,
                 runSpacing: 8,
                 children: List.generate(
-                  engine.objectList.length,
-                  (idx) => _objectListItem(engine, idx),
+                  engine.cellTemplates.length,
+                  (idx) => _cellTemplateItem(engine, idx),
                 ),
               ),
             ),
@@ -74,15 +73,15 @@ class _GameObjectsListState extends State<GameObjectsList> {
     );
   }
 
-  Widget _objectListItem(AsciiEngine engine, int idx) {
-    final obj = engine.objectList[idx];
-    final isSelected = (obj == engine.selectedObject);
+  Widget _cellTemplateItem(AsciiEngine engine, int idx) {
+    final obj = engine.cellTemplates[idx];
+    final isSelected = (obj == engine.selectedTemplate);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          engine.setSelectedObject(obj);
+          engine.setSelectedTemplate(obj);
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 4),
@@ -97,7 +96,7 @@ class _GameObjectsListState extends State<GameObjectsList> {
             ),
             child: Center(
               child: Text(
-                engine.objectList[idx].body,
+                engine.cellTemplates[idx].body,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -112,17 +111,18 @@ class _GameObjectsListState extends State<GameObjectsList> {
 
   Widget _addObjectNameField(AsciiEngine engine) {
     return EngineTextField(
+      width: 30,
       onSubmitted: () {
         setState(() {
           isCreatingObject = false;
         });
 
-        final obj = GameObject(
+        final obj = CellTemplate(
           name: generateRandomString(8),
           body: objNameController.text,
         );
 
-        engine.addObject(obj);
+        engine.addTemplate(obj);
       },
       controller: objNameController,
       maxLength: 1,

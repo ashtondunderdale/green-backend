@@ -1,9 +1,7 @@
-final class GameObject {
+abstract class GameObject {
   final String name;
-  final String body;
 
   GameObject({
     required this.name,
-    required this.body,
   });
 }

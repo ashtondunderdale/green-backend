@@ -1,11 +1,15 @@
+import 'package:engine/widgets/common/engine_text_field.dart';
+import 'package:engine/widgets/common/engine_window.dart';
+import 'package:engine/widgets/explorer/cursor_mode_tab.dart';
 import 'package:engine/widgets/explorer/game_objects_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:engine/models/scene.dart';
 import 'package:engine/widgets/common/engine_button.dart';
 
-import '../../constants/constants.dart';
+import '../../utils/globals.dart';
 import '../../core/engine.dart';
+import 'game_object_expansion_tile.dart';
 
 class ObjectExplorerPanel extends StatefulWidget {
   const ObjectExplorerPanel({super.key});
@@ -15,25 +19,37 @@ class ObjectExplorerPanel extends StatefulWidget {
 }
 
 class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
+  final createSceneNameController = TextEditingController();
+  String createSceneError = "";
+
   @override
   Widget build(BuildContext context) {
     final engine = context.watch<AsciiEngine>();
 
     return Container(
       width: objectExplorerWidth,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border.all(
-          color: Colors.white,
-          width: borderWidth,
+      decoration: const BoxDecoration(
+        color: panelColour,
+        border: Border(
+          right: BorderSide(
+            color: Colors.white,
+            width: borderWidth,
+          ),
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildAddSceneButton(engine),
           const SizedBox(height: 8),
           _buildSceneList(engine),
-          const GameObjectsList()
+          
+          const Row(
+            children: [
+              GameObjectsList(),
+              CursorModeTab(),
+            ],
+          )
         ],
       ),
     );
@@ -41,10 +57,52 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
 
   Widget _buildAddSceneButton(AsciiEngine engine) {
     return EngineButton(
-      text: "Add Scene",
+      text: "New Scene",
       onClick: () {
-        var scene = GameScene(name: "New Scene");
-        engine.addScene(scene);
+        showDialog(
+          context: context,
+          builder: (context) {
+            return EngineWindow(
+              onOkClicked: () {
+                if (createSceneNameController.text.isEmpty) {
+                  setState(() {
+                    createSceneError = "Invalid scene name";
+                  });
+
+                  return;
+                }
+
+                var scene = GameScene(name: createSceneNameController.text);
+                engine.addScene(scene);
+
+                createSceneNameController.clear();
+              },
+              width: 320,
+              height: 180,
+              display: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EngineTextField(
+                      width: 160,
+                      controller: createSceneNameController,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        createSceneError,
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -54,51 +112,35 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
       child: ListView.builder(
         itemCount: engine.gameScenes.length,
         itemBuilder: (context, index) {
-          var scene = engine.gameScenes[index];
-
-          return GestureDetector(
+          final scene = engine.gameScenes[index];
+          return GameObjectExpansionTile(
+            title: scene.name,
+            isSelected: engine.activeScene == scene,
             onTap: () {
               engine.setScene(scene);
+              engine.setSelectedObject(scene);
             },
-            child: ExpansionTile(
-              collapsedIconColor: Colors.white,
-              iconColor: Colors.white,
-              title: GestureDetector(
+            children: scene.cells.map((cell) {
+              return GestureDetector(
                 onTap: () {
-                  engine.setScene(scene);
+                  engine.setSelectedObject(cell);
                 },
-                child: Text(
-                  scene.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Text(
+                    cell.name,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: engine.selectedObject == cell ? FontWeight.bold : null
+                    ),
                   ),
                 ),
-              ),
-              children: [
-                ...scene.cells.map((cell) {
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                    ),
-                    title: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Text(
-                        "Cell: ${cell.body}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
+              );
+            }).toList(),
           );
         },
       ),
     );
   }
-
 }
