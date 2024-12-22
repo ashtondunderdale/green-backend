@@ -1,4 +1,6 @@
-import 'package:engine/core/cursor_mode.dart';
+import 'package:engine/controllers/ascii_grid_controller.dart';
+import 'package:engine/models/cell_entity.dart';
+import 'package:engine/widgets/grid/arrow_compass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +9,10 @@ import '../../utils/globals.dart';
 import '../../core/engine.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  const GameScreen({super.key, required this.controller, required this.engine});
+
+  final AsciiEngine engine;
+  final AsciiGridController controller;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -39,6 +44,13 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  CellEntity? getCellFromXY(int xPos, int yPos) {
+    if (widget.engine.activeScene == null) return null;
+
+    return widget.engine.activeScene!.cells
+      .where((x) => x.xPos == xPos && x.yPos == yPos).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     final engine = context.watch<AsciiEngine>();
@@ -63,7 +75,12 @@ class _GameScreenState extends State<GameScreen> {
         decoration: const BoxDecoration(
           color: Colors.black,
         ),
-        child: _buildGrid(engine, dynamicCols, dynamicRows),
+        child: Stack(
+          children: [
+            _buildGrid(engine, dynamicCols, dynamicRows),
+            ArrowCompass(engine: widget.engine)
+          ],
+        )
       ),
     );
   }
@@ -99,23 +116,7 @@ class _GameScreenState extends State<GameScreen> {
       },
       child: GestureDetector(
         onTap: () {
-          if (engine.isGameMode) return;
-          if (engine.selectedObject == null) return;
-          if (engine.activeScene == null) return;
-
-          final cellAtXY = engine.activeScene!.cells
-            .where((x) => x.xPos == row && x.yPos == col).firstOrNull;
-
-          if (engine.cursorMode == CursorMode.object) {
-            if (cellAtXY != null) return;
-
-            engine.addSceneObject(row, col);
-          } 
-          else if (engine.cursorMode == CursorMode.select) {
-            if (cellAtXY == null) return;
-            engine.setSelectedObject(cellAtXY);
-          }
-
+          widget.controller.onCellClick(engine, row, col);
         },
         child: Container(
           width: cellSize,
@@ -131,20 +132,20 @@ class _GameScreenState extends State<GameScreen> {
                     width: 0.1,
                   ),
           ),
-          child: _buildCellValue(engine, row, col),
+          child: _buildCellValue(row, col),
         ),
       ),
     );
   }
 
-  Widget _buildCellValue(AsciiEngine engine, int row, int col) {
-    double cellSizeFactor = 1.6;
+  Widget _buildCellValue(int row, int col) {
+    double cellSizeFactor = 1.4;
 
-    if (engine.activeScene == null) {
+    if (widget.engine.activeScene == null) {
       return Center(
         child: Text(
           "",
-          style: TextStyle(
+          style: engineFont(
             color: Colors.white,
             fontSize: cellSize / cellSizeFactor,
           ),
@@ -152,14 +153,30 @@ class _GameScreenState extends State<GameScreen> {
       );
     }
 
+    final obj = getCellFromXY(row, col);
+
+    if (obj == widget.engine.selectedObject) {
+      return Container(
+        width: cellSize, height: cellSize,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white, width: 1)
+        ),
+        child: Center(
+          child: Text(
+            obj?.body ?? "",
+            style: engineFont(
+              color: Colors.white,
+              fontSize: cellSize / cellSizeFactor,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Text(
-        engine.activeScene!.cells
-            .where((x) => x.xPos == row && x.yPos == col)
-            .firstOrNull
-            ?.body ??
-            "",
-        style: TextStyle(
+        obj?.body ?? "",
+        style: engineFont(
           color: Colors.white,
           fontSize: cellSize / cellSizeFactor,
         ),

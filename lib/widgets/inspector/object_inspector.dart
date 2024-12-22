@@ -1,14 +1,15 @@
 import 'package:engine/core/engine.dart';
 import 'package:engine/models/cell_entity.dart';
-import 'package:engine/models/game_object.dart';
+import 'package:engine/models/cell_template.dart';
 import 'package:engine/models/scene.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../utils/globals.dart';
 
 class ObjectInspectorPanel extends StatefulWidget {
-  const ObjectInspectorPanel({super.key});
+  const ObjectInspectorPanel({super.key, required this.engine});
+
+  final AsciiEngine engine;
 
   @override
   State<ObjectInspectorPanel> createState() => _ObjectInspectorPanelState();
@@ -17,8 +18,6 @@ class ObjectInspectorPanel extends StatefulWidget {
 class _ObjectInspectorPanelState extends State<ObjectInspectorPanel> {
   @override
   Widget build(BuildContext context) {
-    final engine = context.watch<AsciiEngine>();
-
     return Container(
       width: objectExplorerWidth,
       decoration: const BoxDecoration(
@@ -35,34 +34,60 @@ class _ObjectInspectorPanelState extends State<ObjectInspectorPanel> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: getObjectDisplay(engine.selectedObject)
+            child: getObjectDisplay()
           ),
         ],
       ),
     );
   }
 
-  Widget getObjectDisplay(GameObject? obj) {
-    if (obj == null) return const SizedBox();
+  Widget getObjectDisplay() {
+    final obj = widget.engine.selectedObject;
 
-    if (obj is GameScene) {
-      return displayGameScene(obj);
-    }
+    return switch (obj) {
+      GameScene scene       => displayGameScene(scene),
+      CellEntity cell       => displayCellEntity(cell),
+      CellTemplate template => displayCellTemplate(template),
+      _                     => const SizedBox(),
+    };
+  }
 
-    if (obj is CellEntity) {
-      return displayCellEntity(obj);
-    }
-
-    return const SizedBox();
+  Widget displayCellTemplate(CellTemplate template) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Cell Template",
+          style: engineFont(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14
+          ),
+        ),
+        Text(
+          template.name,
+          style: engineFont(
+            color: Colors.white
+          ),
+        ),
+        Text(
+          template.body,
+          style: engineFont(
+            color: Colors.white,
+            fontSize: 22
+          ),
+        ),
+      ],
+    );
   }
 
   Widget displayCellEntity(CellEntity cell) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Cell Entity",
-            style: TextStyle(
+            style: engineFont(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 14
@@ -70,7 +95,7 @@ class _ObjectInspectorPanelState extends State<ObjectInspectorPanel> {
           ),
           Text(
             cell.name,
-            style: const TextStyle(
+            style: engineFont(
               color: Colors.white
             ),
           ),
@@ -82,9 +107,9 @@ class _ObjectInspectorPanelState extends State<ObjectInspectorPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Game Scene",
-          style: TextStyle(
+          style: engineFont(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 14
@@ -92,7 +117,7 @@ class _ObjectInspectorPanelState extends State<ObjectInspectorPanel> {
         ),
         Text(
           scene.name,
-          style: const TextStyle(
+          style: engineFont(
             color: Colors.white
           ),
         ),

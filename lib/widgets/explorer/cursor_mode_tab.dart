@@ -1,11 +1,12 @@
 import 'package:engine/utils/globals.dart';
-import 'package:engine/core/cursor_mode.dart';
+import 'package:engine/core/cursor/cursor_mode.dart';
 import 'package:engine/core/engine.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class CursorModeTab extends StatefulWidget {
-  const CursorModeTab({super.key});
+  const CursorModeTab({super.key, required this.engine});
+
+  final AsciiEngine engine;
 
   @override
   State<CursorModeTab> createState() => _CursorModeTabState();
@@ -14,8 +15,6 @@ class CursorModeTab extends StatefulWidget {
 class _CursorModeTabState extends State<CursorModeTab> {
   @override
   Widget build(BuildContext context) {
-    final engine = context.watch<AsciiEngine>();
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 8),
       child: Container(
@@ -29,20 +28,21 @@ class _CursorModeTabState extends State<CursorModeTab> {
         ),
         child: Column(
           children: [
-            _buildCursorType("Select", engine, Icons.draw, CursorMode.select),
-            _buildCursorType("Object", engine, Icons.data_object, CursorMode.object),
+            _buildCursorType("Select", Icons.draw, CursorMode.select),
+            _buildCursorType("Object", Icons.data_object, CursorMode.object),
+            _buildCursorType("Remove", Icons.delete, CursorMode.delete),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCursorType(String text, AsciiEngine engine, IconData icon, CursorMode mode) {
+  Widget _buildCursorType(String text, IconData icon, CursorMode mode) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          engine.setCursorMode(mode);
+          widget.engine.setCursorMode(mode);
         },
         child: Padding(
           padding: const EdgeInsets.only(top: 8),
@@ -52,7 +52,7 @@ class _CursorModeTabState extends State<CursorModeTab> {
               width: 20, height: 20,
               child: Icon(
                 icon,
-                color: engine.cursorMode == mode ? Colors.white : const Color.fromARGB(255, 173, 173, 173),
+                color: widget.engine.cursorMode == mode ? Colors.white : const Color.fromARGB(255, 173, 173, 173),
                 size: 20,
               ),
             ),

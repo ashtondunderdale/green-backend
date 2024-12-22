@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/globals.dart';
+
 class GameObjectExpansionTile extends StatefulWidget {
   final String title;
   final List<Widget> children;
@@ -49,7 +51,7 @@ class _GameObjectExpansionTileState extends State<GameObjectExpansionTile> {
               children: [
                 Text(
                   widget.title,
-                  style: TextStyle(
+                  style: engineFont(
                     color: Colors.white,
                     fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
                   ),

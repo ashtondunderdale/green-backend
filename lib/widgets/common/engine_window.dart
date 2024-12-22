@@ -54,7 +54,6 @@ class _EngineWindowState extends State<EngineWindow> {
       text: "Ok",
       onClick: () {
         widget.onOkClicked();
-        Navigator.pop(context);
       }
     );
   }

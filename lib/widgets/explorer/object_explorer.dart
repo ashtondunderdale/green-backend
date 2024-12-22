@@ -1,18 +1,18 @@
 import 'package:engine/widgets/common/engine_text_field.dart';
 import 'package:engine/widgets/common/engine_window.dart';
 import 'package:engine/widgets/explorer/cursor_mode_tab.dart';
-import 'package:engine/widgets/explorer/game_objects_list.dart';
+import 'package:engine/widgets/explorer/cell_templates_tab.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:engine/models/scene.dart';
 import 'package:engine/widgets/common/engine_button.dart';
-
 import '../../utils/globals.dart';
 import '../../core/engine.dart';
 import 'game_object_expansion_tile.dart';
 
 class ObjectExplorerPanel extends StatefulWidget {
-  const ObjectExplorerPanel({super.key});
+  const ObjectExplorerPanel({super.key, required this.engine});
+
+  final AsciiEngine engine;
 
   @override
   State<ObjectExplorerPanel> createState() => _ObjectExplorerPanelState();
@@ -24,8 +24,6 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final engine = context.watch<AsciiEngine>();
-
     return Container(
       width: objectExplorerWidth,
       decoration: const BoxDecoration(
@@ -40,14 +38,14 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildAddSceneButton(engine),
+          _buildAddSceneButton(),
           const SizedBox(height: 8),
-          _buildSceneList(engine),
+          _buildSceneList(),
           
-          const Row(
+          Row(
             children: [
-              GameObjectsList(),
-              CursorModeTab(),
+              GameObjectsList(engine: widget.engine),
+              CursorModeTab(engine: widget.engine),
             ],
           )
         ],
@@ -55,7 +53,7 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
     );
   }
 
-  Widget _buildAddSceneButton(AsciiEngine engine) {
+  Widget _buildAddSceneButton() {
     return EngineButton(
       text: "New Scene",
       onClick: () {
@@ -73,9 +71,10 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
                 }
 
                 var scene = GameScene(name: createSceneNameController.text);
-                engine.addScene(scene);
+                widget.engine.addScene(scene);
 
                 createSceneNameController.clear();
+                Navigator.pop(context);
               },
               width: 320,
               height: 180,
@@ -92,7 +91,7 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         createSceneError,
-                        style: const TextStyle(
+                        style: engineFont(
                           color: Colors.white,
                         ),
                       ),
@@ -107,32 +106,33 @@ class _ObjectExplorerPanelState extends State<ObjectExplorerPanel> {
     );
   }
 
-  Widget _buildSceneList(AsciiEngine engine) {
+  Widget _buildSceneList() {
     return Expanded(
       child: ListView.builder(
-        itemCount: engine.gameScenes.length,
+        itemCount: widget.engine.gameScenes.length,
         itemBuilder: (context, index) {
-          final scene = engine.gameScenes[index];
+          final scene = widget.engine.gameScenes[index];
+
           return GameObjectExpansionTile(
             title: scene.name,
-            isSelected: engine.activeScene == scene,
+            isSelected: widget.engine.activeScene == scene,
             onTap: () {
-              engine.setScene(scene);
-              engine.setSelectedObject(scene);
+              widget.engine.setScene(scene);
+              widget.engine.setSelectedObject(scene);
             },
             children: scene.cells.map((cell) {
               return GestureDetector(
                 onTap: () {
-                  engine.setSelectedObject(cell);
+                  widget.engine.setSelectedObject(cell);
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 16, top: 4),
                   child: Text(
                     cell.name,
-                    style: TextStyle(
+                    style: engineFont(
                       color: Colors.white,
                       fontSize: 12,
-                      fontWeight: engine.selectedObject == cell ? FontWeight.bold : null
+                      fontWeight: widget.engine.selectedObject == cell ? FontWeight.bold : null
                     ),
                   ),
                 ),

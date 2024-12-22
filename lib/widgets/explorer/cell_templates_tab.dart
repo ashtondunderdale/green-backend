@@ -1,28 +1,26 @@
-import 'dart:math';
-
 import 'package:engine/utils/globals.dart';
 import 'package:engine/core/engine.dart';
 import 'package:engine/models/cell_template.dart';
 import 'package:engine/widgets/common/engine_button.dart';
 import 'package:engine/widgets/common/engine_text_field.dart';
+import 'package:engine/widgets/common/engine_window.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class GameObjectsList extends StatefulWidget {
-  const GameObjectsList({super.key});
+  const GameObjectsList({super.key, required this.engine});
+
+  final AsciiEngine engine;
 
   @override
   State<GameObjectsList> createState() => _GameObjectsListState();
 }
 
 class _GameObjectsListState extends State<GameObjectsList> {
-  final objNameController = TextEditingController();
-  bool isCreatingObject = false;
+  final templateNameController = TextEditingController();
+  final templateBodyController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final engine = context.watch<AsciiEngine>();
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 8),
       child: Container(
@@ -40,8 +38,7 @@ class _GameObjectsListState extends State<GameObjectsList> {
           children: [
             Row(
               children: [
-                _addObjectButton(engine),
-                if (isCreatingObject) _addObjectNameField(engine)
+                _addCellTemplateButton(),
               ],
             ),
 
@@ -51,8 +48,8 @@ class _GameObjectsListState extends State<GameObjectsList> {
                 spacing: 8,
                 runSpacing: 8,
                 children: List.generate(
-                  engine.cellTemplates.length,
-                  (idx) => _cellTemplateItem(engine, idx),
+                  widget.engine.cellTemplates.length,
+                  (idx) => _cellTemplateItem(idx),
                 ),
               ),
             ),
@@ -62,26 +59,62 @@ class _GameObjectsListState extends State<GameObjectsList> {
     );
   }
 
-  Widget _addObjectButton(AsciiEngine engine) {
+  Widget _addCellTemplateButton() {
     return EngineButton(
-      text: "Add Object",
+      text: "Add Template",
       onClick: () {
-        setState(() {
-          isCreatingObject = true;
+        showDialog(context: context, builder: (context) {
+          return EngineWindow(
+            width: 400,
+            height: 140,
+            onOkClicked: () {
+              final template = CellTemplate(
+                body: templateBodyController.text,
+                name: templateNameController.text
+              );
+
+              widget.engine.addTemplate(template);
+              Navigator.pop(context);
+            },
+            display: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: EngineTextField(
+                    hintText: "template name",
+                    controller: templateNameController,
+                    width: 240
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: EngineTextField(
+                    hintText: "body",
+                    controller: templateBodyController,
+                    maxLength: 1,
+                    width: 54
+                  ),
+                ),
+              ],
+            ),
+          );
         });
       },
     );
   }
 
-  Widget _cellTemplateItem(AsciiEngine engine, int idx) {
-    final obj = engine.cellTemplates[idx];
-    final isSelected = (obj == engine.selectedTemplate);
+  Widget _cellTemplateItem(int idx) {
+    final obj = widget.engine.cellTemplates[idx];
+    final isSelected = (obj == widget.engine.selectedTemplate);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          engine.setSelectedTemplate(obj);
+          widget.engine.setSelectedTemplate(obj);
+          widget.engine.setSelectedObject(obj);
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 4),
@@ -96,8 +129,8 @@ class _GameObjectsListState extends State<GameObjectsList> {
             ),
             child: Center(
               child: Text(
-                engine.cellTemplates[idx].body,
-                style: const TextStyle(
+                widget.engine.cellTemplates[idx].body,
+                style: engineFont(
                   color: Colors.white,
                   fontSize: 18,
                 ),
@@ -106,32 +139,6 @@ class _GameObjectsListState extends State<GameObjectsList> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _addObjectNameField(AsciiEngine engine) {
-    return EngineTextField(
-      width: 30,
-      onSubmitted: () {
-        setState(() {
-          isCreatingObject = false;
-        });
-
-        final obj = CellTemplate(
-          name: generateRandomString(8),
-          body: objNameController.text,
-        );
-
-        engine.addTemplate(obj);
-      },
-      controller: objNameController,
-      maxLength: 1,
-    );
-  }
-  
-  static String generateRandomString(final int len) {
-    return String.fromCharCodes(
-      List.generate(len, (index) => Random().nextInt(33) + 89)
     );
   }
 }

@@ -1,10 +1,12 @@
-import 'package:engine/core/cursor_mode.dart';
+import 'package:engine/core/cursor/cursor_mode.dart';
 import 'package:engine/models/cell_template.dart';
 import 'package:engine/models/game_object.dart';
 import 'package:engine/models/scene.dart';
 import 'package:engine/models/cell_entity.dart';
 import 'package:engine/utils/globals.dart';
 import 'package:flutter/material.dart';
+
+import 'cursor/cursor_mapper.dart';
 
 final class AsciiEngine with ChangeNotifier {
   bool isGameMode = false;
@@ -21,12 +23,7 @@ final class AsciiEngine with ChangeNotifier {
 
   void setCursorMode(CursorMode mode) {
     cursorMode = mode;
-
-    if (mode == CursorMode.select) {
-      activeCursor = SystemMouseCursors.grab;
-    } else if (mode == CursorMode.object) {
-      activeCursor = SystemMouseCursors.click;
-    }
+    activeCursor = CursorMapper.map(mode);
 
     notifyListeners();
   }
@@ -61,7 +58,11 @@ final class AsciiEngine with ChangeNotifier {
     notifyListeners();
   }
 
-  void addSceneObject(final int x, final int y) {
+  void updateCell(CellEntity cell) {
+    notifyListeners();
+  }
+
+  void addCellEntity(final int x, final int y) {
     final cell = CellEntity(
       name: _getNextObjectName(),
       body: selectedTemplate!.body,
@@ -69,6 +70,11 @@ final class AsciiEngine with ChangeNotifier {
     );
 
     activeScene!.cells.add(cell);
+    notifyListeners();
+  }
+
+  void removeCellEntity(CellEntity cell) {
+    activeScene!.cells.remove(cell);
     notifyListeners();
   }
 

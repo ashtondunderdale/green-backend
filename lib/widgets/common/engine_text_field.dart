@@ -10,7 +10,8 @@ class EngineTextField extends StatefulWidget {
     required this.controller, 
     this.maxLength, 
     required this.width,
-    this.hasBorder = true
+    this.hasBorder = true,
+    this.hintText
   });
 
   final TextEditingController controller;
@@ -18,6 +19,7 @@ class EngineTextField extends StatefulWidget {
   final int? maxLength;
   final double width;
   final bool hasBorder;
+  final String? hintText;
 
   @override
   State<EngineTextField> createState() => _EngineTextFieldState();
@@ -38,7 +40,7 @@ class _EngineTextFieldState extends State<EngineTextField> {
       child: TextField(
         controller: widget.controller,
         cursorColor: Colors.grey,
-        style: const TextStyle(
+        style: engineFont(
           color: Colors.white,
           fontSize: 14,
         ),
@@ -49,9 +51,13 @@ class _EngineTextFieldState extends State<EngineTextField> {
             widget.onSubmitted!();
           }
         },
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
+          hintText: widget.hintText,
+          hintStyle: const TextStyle(
+            color: Color.fromARGB(255, 107, 107, 107)
+          ),
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 6),
+          contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
           border: InputBorder.none,
           counterText: '',
         ),

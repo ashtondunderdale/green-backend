@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/globals.dart';
+
 class EngineButton extends StatelessWidget {
   const EngineButton({
     super.key, 
@@ -34,8 +36,9 @@ class EngineButton extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 2),
                 child: icon == null ? Text(
                   text ?? "",
-                  style: const TextStyle(
-                    color: Colors.white
+                  style: engineFont(
+                    color: Colors.white,
+                    fontSize: 12
                   ),
                 ) : Icon(
                   icon,
